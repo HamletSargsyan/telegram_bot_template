@@ -1,7 +1,3 @@
-import threading
-import urllib3
-from telebot.apihelper import ApiTelegramException
-
 from bot import rassilka
 from bot.handlers import *
 from bot.utils.logging import console_log, log
