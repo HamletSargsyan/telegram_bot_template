@@ -7,23 +7,24 @@ from .models import Base, models_list, ModelType
 
 from config import DB_URL
 
+
 class DataBase:
     def __init__(self):
         self.Base = Base
-        self.engine = create_engine(url=DB_URL) #pyright: ignore
+        self.engine = create_engine(url=DB_URL)  # pyright: ignore
         self.sessionmaker = sessionmaker(bind=self.engine)
         self.session = self.sessionmaker()
 
     def create_all(self):
         self.Base.create_all(self.engine)
 
-    def get_model(self, model: Union[ModelType, str]): # -> ModelType:
+    def get_model(self, model: Union[ModelType, str]):  # -> ModelType:
         return getattr(models_list, str(model))
 
     def add(self, model: Union[ModelType, None], **kwargs):
         if not model:
             return
-        
+
         new_data = model(**kwargs)
         data = self.session.query(model).filter_by(**kwargs).first()
         if data:
@@ -34,7 +35,7 @@ class DataBase:
     def delete(self, model: Union[ModelType, None], id: int):
         if not model:
             return
-       
+
         data = self.session.query(model).filter_by(id=id).first()
         if not data:
             return
@@ -70,4 +71,3 @@ class DataBase:
         if not model:
             return
         return self.session.query(model).filter_by(id=str(id)).first() is not None
-
