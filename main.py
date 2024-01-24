@@ -1,3 +1,4 @@
+from bot.handlers import *
 from config import bot, DEBUG, logger
 
 
@@ -5,7 +6,7 @@ def log(*args, **kwargs):
     return args, kwargs
 
 
-# @error_handler
+@error_handler
 def main() -> None:
     log("Бот включён", "info")
     logger.success("Бот включён")
