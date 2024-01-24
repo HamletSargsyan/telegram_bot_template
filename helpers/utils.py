@@ -1,4 +1,4 @@
-from typing import Union, Litera
+from typing import Union, Literal
 from datetime import datetime
 
 from telebot.util import antifloot, escape, smart_split
@@ -22,4 +22,4 @@ def log(
     message: str,
     level: Union[Literal["error"], Literal["warn"], Literal["log"], Literal["success"]],
 ):
-    ...
+    ... 
