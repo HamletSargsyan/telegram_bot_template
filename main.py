@@ -1,9 +1,8 @@
 from bot.handlers import *
+
+from helpers.util import error_handler, log
+
 from config import bot, DEBUG, logger
-
-
-def log(*args, **kwargs):
-    return args, kwargs
 
 
 @error_handler
