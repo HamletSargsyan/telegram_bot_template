@@ -1,17 +1,16 @@
-from bot import rassilka
-from bot.handlers import *
-from bot.utils.logging import console_log, log
-from config import bot, DEBUG
+from config import bot, DEBUG, logger
 
+def log(*args, **kwargs):
+    return args, kwargs
 
-@error_handler
+# @error_handler
 def main() -> None:
     log('Бот включён', 'info')
-    console_log('Бот включён', 'success')
+    logger.success('Бот включён')
     
     if DEBUG:
         log('Бот работает в режиме debug', 'warn')
-        console_log('Бот работает в режиме debug', 'warn')
+        logger.warning('Бот работает в режиме debug')
 
     bot.infinity_polling(timeout=500, skip_pending=True)
 
