@@ -20,24 +20,24 @@ def error_handler(func):
 @error_handler
 def log(
     message: str,
-    level: Union[Literal["error"], Literal["warn"], Literal["info"], Literal["success"]],
+    level: Union[
+        Literal["error"], Literal["warn"], Literal["info"], Literal["success"]
+    ],
 ):
-    emoji_dict = {
-        "error": "🛑",
-        "warn": "⚠️",
-        "info": "ℹ️",
-        "success": "✅"
-    }
+    emoji_dict = {"error": "🛑", "warn": "⚠️", "info": "ℹ️", "success": "✅"}
 
     time = datetime.now(timezone)
     level_ = f"{emoji_dict.get(level)} {level.upper()}"
 
-
     try:
         for mess in smart_split(escape(message)):
-            template = (f"{level_}\n\n"
-                        f"{time}\n\n"
-                        f"<pre><code class='language-shell'>{mess}</code></pre>")
-            antiflood(bot.send_message, log_chat_id, template, message_thread_id=log_thread_id)
+            template = (
+                f"{level_}\n\n"
+                f"{time}\n\n"
+                f"<pre><code class='language-shell'>{mess}</code></pre>"
+            )
+            antiflood(
+                bot.send_message, log_chat_id, template, message_thread_id=log_thread_id
+            )
     except Exception as e:
         logger.exception(e)
