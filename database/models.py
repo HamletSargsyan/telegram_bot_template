@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional, Union
 from bson import ObjectId
 
+
 class DictSerializable:
     def to_dict(self) -> dict:
         return self.__dict__
@@ -28,6 +29,6 @@ class UserModel(DictSerializable):
 
         for k, v in kwargs.items():
             setattr(self, k, v)
-    
+
     def __repr__(self):
         return f"{self.__class__.__name__} {self.name}"

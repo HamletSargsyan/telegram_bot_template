@@ -14,15 +14,15 @@ def register_user(message: Message):
         user = UserModel(
             id=message.from_user.id,
             name=remove_not_allowed_symbols(message.from_user.full_name),
-            username=message.from_user.username
+            username=message.from_user.username,
         )
         database.users.add(**user.to_dict())
-        logger.info(f'Новый пользователь: {user.name} ({user.id})')
+        logger.info(f"Новый пользователь: {user.name} ({user.id})")
 
 
 class RegisterMiddleware(BaseMiddleware):
     def __init__(self) -> None:
-        self.update_types = ['message']
+        self.update_types = ["message"]
 
     def pre_process(self, message: Message, data):
         if message.from_user.is_bot:
@@ -32,8 +32,7 @@ class RegisterMiddleware(BaseMiddleware):
         if message.reply_to_message:
             if message.reply_to_message.from_user.is_bot:
                 return CancelUpdate()
-            register_user(message.reply_to_message)        
-
+            register_user(message.reply_to_message)
 
     def post_process(self, message, data, exception):
         pass

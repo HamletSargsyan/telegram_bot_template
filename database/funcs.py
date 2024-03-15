@@ -10,9 +10,10 @@ from database.models import UserModel
 client = MongoClient(DB_URL)
 db = client.get_database(DB_NAME)
 
-users = db.get_collection('users')
+users = db.get_collection("users")
 
-T = TypeVar("T", UserModel, Any) # NOTE: delete Any
+T = TypeVar("T", UserModel, Any)  # NOTE: delete Any
+
 
 class BaseDB(Generic[T]):
     def __init__(self, collection: Collection, model: Type[T]):
@@ -21,10 +22,10 @@ class BaseDB(Generic[T]):
 
     def add(self, **kwargs):
         return self.collection.insert_one(kwargs)
-     
+
     def delete(self, **data):
         return self.collection.delete_one(data)
-    
+
     def update(self, _id: Union[int, str], **data):
         return self.collection.update_one({"_id": _id}, {"$set": data})
 
@@ -33,13 +34,13 @@ class BaseDB(Generic[T]):
         if not obj:
             raise NoResult
         return self.model(**obj)
-            
+
     def get_all(self, **data):
         obj = self.collection.find(data)
         if not obj:
             return []
         return [self.model(**attrs) for attrs in obj]
-    
+
     def check_exists(self, **data) -> bool:
         try:
             return self.get(**data) is not None
@@ -50,5 +51,6 @@ class BaseDB(Generic[T]):
 class DataBase:
     def __init__(self) -> None:
         self.users = BaseDB(users, UserModel)
+
 
 database = DataBase()

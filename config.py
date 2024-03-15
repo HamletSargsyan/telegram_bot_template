@@ -29,7 +29,7 @@ bot = telebot.TeleBot(
     skip_pending=True,
     num_threads=10,
     disable_web_page_preview=True,
-    use_class_middlewares=True
+    use_class_middlewares=True,
 )
 
 
@@ -40,12 +40,15 @@ timezone = datetime.utcnow().tzinfo
 
 
 logger = logging.Logger("Bot")
+
+
 class TelegramLogsHandler(logging.Handler):
     def __init__(self):
         super().__init__()
 
     def emit(self, record):
         from helpers.utils import log
+
         log_entry = self.format(record)
         log(log_entry, record.levelname, record)
         del log
@@ -63,4 +66,3 @@ logger.addHandler(console_output_handler)
 
 telebot.logger.addHandler(TelegramLogsHandler())
 telebot.logger.setLevel(20)
-
