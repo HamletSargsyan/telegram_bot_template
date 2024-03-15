@@ -1,73 +1,54 @@
-from typing import Union, Dict
+from typing import Any, Generic, Type, TypeVar, Union
+from pymongo import MongoClient
+from pymongo.collection import Collection
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from helpers.exceptions import NoResult
+from config import DB_NAME, DB_URL
+from database.models import UserModel
 
-from .models import Base, models_list, ModelType
 
-from config import DB_URL
+client = MongoClient(DB_URL)
+db = client.get_database(DB_NAME)
+
+users = db.get_collection('users')
+
+T = TypeVar("T", UserModel, Any) # NOTE: delete Any
+
+class BaseDB(Generic[T]):
+    def __init__(self, collection: Collection, model: Type[T]):
+        self.collection: Collection = collection
+        self.model = model
+
+    def add(self, **kwargs):
+        return self.collection.insert_one(kwargs)
+     
+    def delete(self, **data):
+        return self.collection.delete_one(data)
+    
+    def update(self, _id: Union[int, str], **data):
+        return self.collection.update_one({"_id": _id}, {"$set": data})
+
+    def get(self, **data):
+        obj = self.collection.find_one(data)
+        if not obj:
+            raise NoResult
+        return self.model(**obj)
+            
+    def get_all(self, **data):
+        obj = self.collection.find(data)
+        if not obj:
+            return []
+        return [self.model(**attrs) for attrs in obj]
+    
+    def check_exists(self, **data) -> bool:
+        try:
+            return self.get(**data) is not None
+        except NoResult:
+            return False
 
 
 class DataBase:
-    def __init__(self):
-        self.Base = Base
-        self.engine = create_engine(url=DB_URL)  # pyright: ignore
-        self.sessionmaker = sessionmaker(bind=self.engine)
-        self.session = self.sessionmaker()
+    def __init__(self) -> None:
+        self.users = BaseDB(users, UserModel)
 
-    def create_all(self):
-        self.Base.create_all(self.engine)
-
-    def get_model(self, model: Union[ModelType, str]):  # -> ModelType:
-        return getattr(models_list, str(model))
-
-    def add(self, model: Union[ModelType, None], **kwargs):
-        if not model:
-            return
-
-        new_data = model(**kwargs)
-        data = self.session.query(model).filter_by(**kwargs).first()
-        if data:
-            return
-        self.session.add(new_data)
-        self.session.commit()
-
-    def delete(self, model: Union[ModelType, None], id: int):
-        if not model:
-            return
-
-        data = self.session.query(model).filter_by(id=id).first()
-        if not data:
-            return
-        self.session.delete(data)
-        self.session.commit()
-
-    def update(self, model: Union[ModelType, None], id: int, new_data: Dict):
-        if not model:
-            return
-
-        data = self.session.query(model).filter_by(id=id).first()
-        if not data:
-            return
-
-        for key, value in new_data.items():
-            setattr(data, key, value)
-        self.session.commit()
-
-    def get(self, model: Union[ModelType, None], **kwargs):
-        if not model:
-            return
-        return self.session.query(model).filter_by(**kwargs).first()
-
-    def get_all(self, model: Union[ModelType, None], **kwargs):
-        if not model:
-            return
-
-        if kwargs:
-            return [item for item in self.session.query(model).filter(**kwargs).all()]
-        return [item for item in self.session.query(model).all()]
-
-    def check_exist(self, model: Union[ModelType, None], id: int):
-        if not model:
-            return
-        return self.session.query(model).filter_by(id=str(id)).first() is not None
+database = DataBase()
