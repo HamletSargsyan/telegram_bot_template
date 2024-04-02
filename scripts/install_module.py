@@ -1,5 +1,5 @@
 import os
-MODULES_SRC = "~/repos/telegram_bot_modules"
+from config import MODULES_SRC
 
 
 class ModuleInstaller:

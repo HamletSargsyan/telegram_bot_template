@@ -1,7 +1,7 @@
 from bot import handlers  # noqa
 
 from middlewares.register import RegisterMiddleware
-
+import modules  # noqa
 from config import bot, DEBUG, logger
 
 
