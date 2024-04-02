@@ -14,6 +14,7 @@ DEBUG = True
 TOKEN = os.getenv("BOT_TOKEN", "")
 DB_URL = os.getenv("DB_URL", "")
 DB_NAME = os.getenv("DB_NAME", "")
+MODULES_SRC = os.getenv("MODULES_SRC", "")
 
 if not TOKEN:
     raise ValueError
