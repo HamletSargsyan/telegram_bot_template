@@ -1,4 +1,5 @@
 .env
-test*.*
+*test*.*
 *.log
 __pycache__
+modules
