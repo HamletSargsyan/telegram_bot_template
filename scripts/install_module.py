@@ -1,91 +1,60 @@
-import git
 import os
 import shutil
-from git import GitCommandError, NoSuchPathError
-
-# Путь, куда вы хотите склонировать папку
-LOCAL_FOLDER_PATH = "./modules/"
-
-USERNAME = "HamletSargsyan"
-REPO = "telegram_bot_modules"
-REPO_URL = f"git@github.com:{USERNAME}/{REPO}.git"
+import git
 
 
 class ModuleInstaller:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, module_dir: str, gh_username: str, repo_name: str):
+        self.module_dir = module_dir
+        self.repo_url = f"git@github.com:{gh_username}/{repo_name}"
 
-    def install(self, name: str):
-        """
-        Устанавливает модуль из репозитория.
+    def install_module(self, module_name):
+        module_path = os.path.join(self.module_dir, module_name)
+        if os.path.exists(module_path):
+            print(f"Module '{module_name}' is already installed.")
+            return
 
-        Args:
-            name (str): Имя папки, в которую будет установлен модуль.
-
-        Returns:
-            str: Сообщение об успешной установке.
-        """
         try:
-            git.Repo.clone_from(
-                REPO_URL,
-                os.path.join(LOCAL_FOLDER_PATH, name),
-                branch="main",
-                depth=1,
-                single_branch=True,
-            )
-            return f"{name} успешно установлен"
-        except GitCommandError as e:
-            return f"Ошибка при клонировании репозитория: {str(e)}"
-        except Exception as e:
-            return f"Ошибка при установке модуля: {str(e)}"
+            git.Repo.clone_from(self.repo_url, module_path)
+            print(f"Module '{module_name}' installed successfully.")
+        except git.GitCommandError as e:
+            print(f"Failed to install module '{module_name}': {e}")
 
-    def update(self):
-        """
-        Обновляет все модули.
+    def update_module(self, module_name):
+        module_path = os.path.join(self.module_dir, module_name)
+        if not os.path.exists(module_path):
+            print(f"Module '{module_name}' is not installed.")
+            return
 
-        Returns:
-            str: Сообщение об успешном обновлении.
-        """
         try:
-            for module_folder in os.listdir(LOCAL_FOLDER_PATH):
-                module_path = os.path.join(LOCAL_FOLDER_PATH, module_folder)
-                if os.path.isdir(module_path):
-                    repo = git.Repo(module_path)
-                    origin = repo.remote(name="origin")
-                    origin.pull()
-            return "Модули успешно обновлены"
-        except NoSuchPathError as e:
-            return f"Ошибка: {str(e)}"
-        except GitCommandError as e:
-            return f"Ошибка при обновлении репозитория: {str(e)}"
-        except Exception as e:
-            return f"Ошибка при обновлении модулей: {str(e)}"
+            shutil.rmtree(module_path)
+            git.Repo.clone_from(self.repo_url, module_path)
+            print(f"Module '{module_name}' updated successfully.")
+        except (git.GitCommandError, FileNotFoundError) as e:
+            print(f"Failed to update module '{module_name}': {e}")
 
-    def remove(self, name: str):
-        """
-        Удаляет модуль.
+    def uninstall_module(self, module_name):
+        module_path = os.path.join(self.module_dir, module_name)
+        if not os.path.exists(module_path):
+            print(f"Module '{module_name}' is not installed.")
+            return
 
-        Args:
-            name (str): Имя папки модуля для удаления.
-
-        Returns:
-            str: Сообщение об успешном удалении.
-        """
         try:
-            module_path = os.path.join(LOCAL_FOLDER_PATH, name)
-            if os.path.exists(module_path):
-                shutil.rmtree(module_path)
-                return f"Модуль {name} успешно удален"
-            else:
-                return f"Модуль {name} не найден"
-        except Exception as e:
-            return f"Ошибка при удалении модуля: {str(e)}"
+            shutil.rmtree(module_path)
+            print(f"Module '{module_name}' uninstalled successfully.")
+        except FileNotFoundError as e:
+            print(f"Failed to uninstall module '{module_name}': {e}")
 
 
 # Пример использования:
 if __name__ == "__main__":
-    installer = ModuleInstaller()
-    module_name = "example_module"
-    print(installer.install(module_name))
-    print(installer.update())
-    print(installer.remove(module_name))
+    installer = ModuleInstaller("./modules", "HamletSargsyan", "telegram_bot_modules")
+
+    # Установка модуля
+    installer.install_module("test")
+
+    # Обновление модуля
+    # installer.update_module("test")
+
+    # # Удаление модуля
+    # installer.uninstall_module("test")
