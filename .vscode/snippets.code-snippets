@@ -21,7 +21,7 @@
 		"body": [
 			"@bot.message_handler(commands=['${1:command}'])",
 			"def ${1:command}_cmd(message: Message):",
-			"\tuser = database.users.get(id=message.from_user.id)\n\n",
+			"\tuser = database.users.get(id=message.from_user.id)\n",
 			"\t$0"
 		]
 	},

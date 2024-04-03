@@ -39,6 +39,7 @@ log_thread_id = 0
 
 timezone = datetime.utcnow().tzinfo
 
+bot_owners = []  # type: list[int]
 
 logger = logging.Logger("Bot")
 

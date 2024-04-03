@@ -1,8 +1,20 @@
-from bot import handlers  # noqa
+import os
+import importlib
 
+from bot import handlers  # noqa
 from middlewares.register import RegisterMiddleware
-import modules  # noqa
 from config import bot, DEBUG, logger
+
+
+def import_modules():
+    if not os.path.exists("./modules"):
+        os.mkdir("./modules")
+        os.system("touch __init__.py")
+        
+    for module in os.listdir("./modules"):
+        if module.startswith("__"):
+            continue
+        importlib.import_module(f"modules.{module}")
 
 
 def main() -> None:
