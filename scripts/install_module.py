@@ -14,10 +14,12 @@ class ModuleInstaller:
     def install(self, name: str):
         cmd = f"cp -r {MODULES_SRC}/{name} {self.module_dir}/{name}"
         try:
-            os.system(cmd)
+            code = os.system(cmd)
         except Exception as e:
             return str(e)
-        return f"Модуль {name} успешно установлен"
+        if code == 0:
+            return f"Модуль {name} успешно установлен"
+        return f"Ошибка при установке модуля {name}"
 
     def update(self, name: str):
         results = []
@@ -31,10 +33,12 @@ class ModuleInstaller:
     def remove(self, name: str):
         cmd = f"rm -rf {self.module_dir}/{name}"
         try:
-            os.system(cmd)
+            code = os.system(cmd)
         except Exception as e:
             return str(e)
-        return f"Модуль {name} успешно удален"
+        if code == 0:
+            return f"Модуль {name} успешно удален"
+        return f"Ошибка при удалении модуля {name}"
         
     def get(self, name: str):
         try:
@@ -56,7 +60,7 @@ class ModuleInstaller:
         return result
 
 
-installer = ModuleInstaller("./modules",)
+installer = ModuleInstaller("./modules")
 # Пример использования:
 if __name__ == "__main__":
 
