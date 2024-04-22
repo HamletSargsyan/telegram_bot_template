@@ -39,31 +39,27 @@ class ModuleInstaller:
         if code == 0:
             return f"Модуль {name} успешно удален"
         return f"Ошибка при удалении модуля {name}"
-        
+
     def get(self, name: str):
         try:
             with open(f"{self.module_dir}/{name}/module.toml") as f:
                 return toml.load(f)
         except Exception as e:
             return str(e)
-        
-    
+
     def list(self):
         result = []
         for mod in os.listdir(self.module_dir):
             info = self.get(mod)
             if isinstance(info, str):
                 return info
-            result.append(
-                f"{mod} - {info['module']['version']}"
-            )
+            result.append(f"{mod} - {info['module']['version']}")
         return result
 
 
 installer = ModuleInstaller("./modules")
 # Пример использования:
 if __name__ == "__main__":
-
     # Установка модуля
     installer.install("test")
 

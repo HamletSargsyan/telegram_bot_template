@@ -10,7 +10,7 @@ def import_modules():
     if not os.path.exists("./modules"):
         os.mkdir("./modules")
         os.system("touch __init__.py")
-        
+
     for module in os.listdir("./modules"):
         if module.startswith("__"):
             continue

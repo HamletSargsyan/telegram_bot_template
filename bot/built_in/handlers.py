@@ -10,6 +10,7 @@ from config import bot, bot_owners
 
 _messages = {}
 
+
 def _update_message(message: Message, text: str):
     if message.id not in _messages:
         _messages[message.id] = message.text
@@ -19,17 +20,18 @@ def _update_message(message: Message, text: str):
     antiflood(bot.edit_message_text, text, message.chat.id, message.id)
     _messages[message.id] = text
 
-@bot.message_handler(commands=['ext'])
+
+@bot.message_handler(commands=["ext"])
 def ext_cmd(message: Message):
     user = database.users.get(id=message.from_user.id)
 
     if user.id not in bot_owners:
         return
-    
+
     args = str(message.text).split(" ")
     if len(args) == 1:
         return
-    
+
     msg = bot.reply_to(message, "<blockquote>Обработка...</blockquote>")
     time.sleep(1)
     match args[1]:
