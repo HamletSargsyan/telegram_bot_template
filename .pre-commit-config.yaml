@@ -1,16 +1,15 @@
 repos:
--   repo: local
-    hooks:
-    - id: pyright
-      name: pyright
-      entry: pyright .
+  - repo: local
+    hooks:   
+    - id: check
+      name: ruff check
+      entry: ruff check .
       language: system
       types: [python]
       pass_filenames: false
-    
-    - id: black
-      name: black
-      entry: black --check .
+    - id: format
+      name: ruff format
+      entry: ruff format .
       language: system
       types: [python]
       pass_filenames: false

@@ -17,10 +17,7 @@ jobs:
       run: pip install -r requirements.txt
 
     - name: Install dev requitements
-      run: pip install pyright black
+      run: pip install ruff
     
-    - name: Pyright
-      run: pyright .
-
-    - name: Black
-      run: black .
+    - name: Ruff
+      run: ruff check .

@@ -55,7 +55,7 @@ class ModuleInstaller:
             if isinstance(info, str):
                 return info
             result.append(
-                f"{mod} - {info['version']}"
+                f"{mod} - {info['module']['version']}"
             )
         return result
 
