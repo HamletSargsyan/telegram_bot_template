@@ -12,7 +12,7 @@ db = client.get_database(DB_NAME)
 
 users = db.get_collection("users")
 
-T = TypeVar("T", UserModel, Any)  # NOTE: delete Any
+T = TypeVar("T", UserModel, Any)  # NOTE: delete `Any` if you add new model
 
 
 class BaseDB(Generic[T]):
