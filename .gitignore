@@ -1,5 +1,7 @@
-.env
+config.toml
 *test*.*
 *.log
 __pycache__
 
+.venv
+.*_cache

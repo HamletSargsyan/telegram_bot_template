@@ -1,5 +1,8 @@
 {
     "python.analysis.autoImportCompletions": true,
-    "python.analysis.typeCheckingMode": "basic",
     "ruff.enable": true,
+    "cSpell.words": [
+        "telebot",
+        "tinylogging"
+    ],
 }

@@ -1,15 +1,16 @@
-from bot import handlers  # noqa
-from middlewares.register import RegisterMiddleware
-from config import bot, DEBUG, logger
+from handlers import message  # noqa
+from middlewares import middlewares
+from config import bot, config, logger
 
 
 def main() -> None:
     logger.info("Бот включён")
 
-    if DEBUG:
+    if config.general.debug:
         logger.warning("Бот работает в режиме debug")
 
-    bot.setup_middleware(RegisterMiddleware())
+    for middleware in middlewares:
+        bot.setup_middleware(middleware())
     bot.infinity_polling(timeout=500, skip_pending=True)
 
 

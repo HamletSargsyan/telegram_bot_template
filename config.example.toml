@@ -1,0 +1,12 @@
+[general]
+debug = false
+
+
+[database]
+url = ""
+name = ""
+
+[telegram]
+token = ""
+log_chat_id = 0
+owners = []

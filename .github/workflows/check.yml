@@ -18,6 +18,6 @@ jobs:
 
     - name: Install dev requitements
       run: pip install ruff
-    
+
     - name: Ruff
       run: ruff check .

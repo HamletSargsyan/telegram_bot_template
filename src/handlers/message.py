@@ -13,4 +13,4 @@ def start_cmd(message: Message):
 
 @bot.message_handler()
 def message_handler(message: Message):
-    bot.reply_to(message, message.text)
+    bot.reply_to(message, message.text)  # type: ignore

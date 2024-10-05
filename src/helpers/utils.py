@@ -1,30 +1,29 @@
-import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from telebot.util import antiflood, escape, split_string
+from tinylogging import Record, Level
 
-from config import bot, logger, timezone, log_chat_id, log_thread_id
+from config import bot, logger, config
 from database.models import UserModel
 
 
-def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
+def log(log_text: str, record: Record) -> None:
     emoji_dict = {
-        "debug": "👾",
-        "info": "ℹ️",
-        "warn": "⚠️",
-        "warning": "⚠️",
-        "error": "🛑",
-        "critical": "⛔",
+        Level.DEBUG: "👾",
+        Level.INFO: "ℹ️",
+        Level.WARNING: "⚠️",
+        Level.ERROR: "🛑",
+        Level.CRITICAL: "⛔",
     }
-    current_time = datetime.now(timezone).strftime("%d.%m.%Y %H:%M:%S")
+    current_time = datetime.now(UTC).strftime("%d.%m.%Y %H:%M:%S")
     log_template = (
-        f'<b>{emoji_dict.get(log_level.lower(), "")} {log_level.upper()}</b>\n\n'
+        f'<b>{emoji_dict.get(record.level, "")} {record.level}</b>\n\n'
         f"{current_time}\n\n"
-        f"<b>Логгер:</b> <code>{record.name}</code>\n"
-        #    f"<b>Модуль:</b> <code>{record.module}</code>\n"
-        f"<b>Путь к файлу:</b> <code>{record.pathname}</code>\n"
-        f"<b>Файл</b>: <code>{record.filename}</code>\n"
-        f"<b>Строка:</b> {record.lineno}\n\n"
+        f"<b>Логгер:</b> <code>{record.name}</code>\n"  # cspell: disable-line
+        # f"<b>Модуль:</b> <code>{record.module}</code>\n"
+        # f"<b>Путь к файлу:</b> <code>{record.pathname}</code>\n"
+        # f"<b>Файл</b>: <code>{record.filename}</code>\n"
+        # f"<b>Строка:</b> {record.lineno}\n\n"
         '<pre><code class="language-shell">{text}</code></pre>'
     )
 
@@ -32,19 +31,16 @@ def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
         try:
             antiflood(
                 bot.send_message,
-                log_chat_id,
+                config.telegram.log_chat_id,
                 log_template.format(text=escape(text)),
-                message_thread_id=log_thread_id,
+                message_thread_id=config.telegram.log_threat_id,
             )
         except Exception as e:
-            logger.exception(e)
-            logger.log(record.levelno, text)
+            logger.critical(str(e))
+            logger.log(text, record.level)
 
 
 def remove_not_allowed_symbols(text: str) -> str:
-    if not isinstance(text, str):
-        raise TypeError(f"Input text must be a string, not {type(text)}.")
-
     not_allowed_symbols = ["#", "<", ">", "{", "}", '"', "'", "$", "(", ")", "@"]
     cleaned_text = "".join(char for char in text if char not in not_allowed_symbols)
 

@@ -5,7 +5,7 @@ from helpers.utils import remove_not_allowed_symbols
 
 from database.funcs import database
 from database.models import UserModel
-from config import logger
+from config import TELEGRAM_ID, logger
 
 
 def register_user(message: Message):
@@ -25,7 +25,7 @@ class RegisterMiddleware(BaseMiddleware):
         self.update_types = ["message"]
 
     def pre_process(self, message: Message, data):
-        if message.from_user.is_bot:
+        if message.from_user.id == TELEGRAM_ID or message.from_user.is_bot:
             return CancelUpdate()
         register_user(message)
 
@@ -34,5 +34,5 @@ class RegisterMiddleware(BaseMiddleware):
                 return CancelUpdate()
             register_user(message.reply_to_message)
 
-    def post_process(self, message, data, exception):
+    def post_process(self, message: Message, data: dict, exception: Exception):
         pass
