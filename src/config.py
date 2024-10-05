@@ -1,8 +1,13 @@
-import logging
 from dataclasses import dataclass
 from typing import Final, Optional
 
-from tinylogging import Logger, LoggingAdapterHandler, Level, BaseHandler
+from tinylogging import (
+    Logger,
+    LoggingAdapterHandler,
+    Level,
+    BaseHandler,
+    FileHandler,
+)
 
 import telebot
 import toml
@@ -70,17 +75,18 @@ class TelegramLogsHandler(BaseHandler):
     def emit(self, record):
         from helpers.utils import log
 
+        self.formatter.colorize = False
+
         log_entry = self.formatter.format(record)
-        log(log_entry, record.level.name, record)  # type: ignore # TODO
+        log(log_entry, record)
 
 
 logger: Final[Logger] = Logger("Bot", level=Level.INFO)
 logger.handlers.add(TelegramLogsHandler())
-
-formatter = logging.Formatter(
-    '%(asctime)s (%(filename)s:%(lineno)d %(threadName)s) %(levelname)s - %(name)s: "%(message)s"'  # cspell: disable-line
-)
+logger.handlers.add(FileHandler("bot.log"))
 
 
-telebot.logger.addHandler(LoggingAdapterHandler(TelegramLogsHandler()))
+telebot.logger.handlers = []
+for handler in logger.handlers:
+    telebot.logger.addHandler(LoggingAdapterHandler(handler))
 telebot.logger.setLevel("INFO")

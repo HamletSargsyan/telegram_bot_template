@@ -6,7 +6,6 @@ from .register import RegisterMiddleware
 
 middlewares: list[Type[BaseMiddleware]] = [
     RegisterMiddleware,
-
 ]
 
 __all__ = ["middlewares"]
