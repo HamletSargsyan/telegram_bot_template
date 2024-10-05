@@ -2,6 +2,7 @@
     "python.analysis.autoImportCompletions": true,
     "ruff.enable": true,
     "cSpell.words": [
+        "antiflood",
         "telebot",
         "tinylogging"
     ],

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Final, Optional
 
 from tinylogging import (
@@ -10,6 +11,8 @@ from tinylogging import (
 )
 
 import telebot
+from telebot.util import antiflood, escape, split_string
+
 import toml
 
 
@@ -71,17 +74,43 @@ bot = telebot.TeleBot(
 )
 
 
+logger: Final = Logger("Bot", level=Level.INFO)
+
+
 class TelegramLogsHandler(BaseHandler):
     def emit(self, record):
-        from helpers.utils import log
+        emoji_dict = {
+            Level.DEBUG: "👾",
+            Level.INFO: "ℹ️",
+            Level.WARNING: "⚠️",
+            Level.ERROR: "🛑",
+            Level.CRITICAL: "⛔",
+        }
+        current_time = datetime.now(UTC).strftime("%d.%m.%Y %H:%M:%S")
+        log_template = (
+            f'<b>{emoji_dict.get(record.level, "")} {record.level}</b>\n\n'
+            f"{current_time}\n\n"
+            f"<b>Логгер:</b> <code>{record.name}</code>\n"  # cspell: disable-line
+            # f"<b>Модуль:</b> <code>{record.module}</code>\n"
+            # f"<b>Путь к файлу:</b> <code>{record.pathname}</code>\n"
+            # f"<b>Файл</b>: <code>{record.filename}</code>\n"
+            # f"<b>Строка:</b> {record.lineno}\n\n"
+            '<pre><code class="language-shell">{text}</code></pre>'
+        )
 
-        self.formatter.colorize = False
+        for text in split_string(record.message, 3000):
+            try:
+                antiflood(
+                    bot.send_message,
+                    config.telegram.log_chat_id,
+                    log_template.format(text=escape(text)),
+                    message_thread_id=config.telegram.log_threat_id,
+                )
+            except Exception as e:
+                logger.critical(str(e))
+                logger.log(text, record.level)
 
-        log_entry = self.formatter.format(record)
-        log(log_entry, record)
 
-
-logger: Final[Logger] = Logger("Bot", level=Level.INFO)
 logger.handlers.add(TelegramLogsHandler())
 logger.handlers.add(FileHandler("bot.log"))
 
