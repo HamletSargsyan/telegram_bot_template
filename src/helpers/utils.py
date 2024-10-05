@@ -1,11 +1,7 @@
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 
-from tinylogging import Record, Level
 
-from config import bot, logger, config
 from database.models import UserModel
-
-
 
 
 def remove_not_allowed_symbols(text: str) -> str:
