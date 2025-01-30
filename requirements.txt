@@ -1,5 +1,5 @@
 pyTelegramBotAPI==4.26.0
-pymongo==4.10.1
+pymongo==4.11
 toml==0.10.2
 python-dotenv==1.0.1
 tinylogging==5.0.1
