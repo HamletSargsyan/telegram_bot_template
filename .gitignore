@@ -1,7 +1,13 @@
-config.toml
-*test*.*
+.pid
 *.log
-__pycache__
+nohup.out
+config.toml
+src/*test*.*
+release_body.md
+docker-compose.yml
 
-.venv
-.*_cache
+site/
+.venv/
+.*_cache/
+__pycache__/
+.ropeproject/

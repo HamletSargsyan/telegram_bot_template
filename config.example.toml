@@ -1,7 +1,6 @@
 [general]
 debug = false
 
-
 [database]
 url = ""
 name = ""

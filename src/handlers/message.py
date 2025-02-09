@@ -1,16 +1,19 @@
-from telebot.types import Message
+from aiogram import F, Router
+from aiogram.enums import ContentType
+from aiogram.filters import CommandStart
+from aiogram.types import Message
 
-from config import bot
+router = Router()
 
 
-@bot.message_handler(commands=["start"])
-def start_cmd(message: Message):
-    bot.reply_to(message, f"Hello {message.from_user.full_name}")
+@router.message(CommandStart())
+async def start_cmd(message: Message):
+    await message.reply(f"Привет {message.from_user.full_name}")
 
 
 # ---------------------------------------------------------------------------- #
 
 
-@bot.message_handler()
-def message_handler(message: Message):
-    bot.reply_to(message, message.text)  # type: ignore
+@router.message(F.content_type == ContentType.TEXT)
+async def message_handler(message: Message):
+    await message.reply(message.text)  # type: ignore

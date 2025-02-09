@@ -1,20 +1,128 @@
-from datetime import timedelta
+import asyncio
+import itertools
+import sys
+from dataclasses import astuple, is_dataclass
+from datetime import datetime, timedelta
+from functools import wraps
+from typing import Any, Awaitable, Callable, Generator, Iterable, ParamSpec, Self, TypeVar
 
+from aiogram.exceptions import TelegramRetryAfter
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from cachetools import LRUCache
 
 from database.models import UserModel
 
+P = ParamSpec("P")
+T = TypeVar("T")
+cache = LRUCache(1080)
 
+
+def make_hashable(value: Any):
+    if isinstance(value, dict):
+        return tuple((k, make_hashable(v)) for k, v in sorted(value.items()))
+    if isinstance(value, (list, set, tuple)):
+        return tuple(make_hashable(v) for v in value)
+    if is_dataclass(value):
+        return make_hashable(astuple(value))  # type: ignore
+    return value
+
+
+def cached(func: Callable[P, T]) -> Callable[P, T]:
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        key = frozenset((make_hashable(args), make_hashable(kwargs)))
+        if key in cache:
+            result: T = cache[key]
+        else:
+            result = func(*args, **kwargs)
+        return result
+
+    return wrapper
+
+
+@cached
 def remove_not_allowed_symbols(text: str) -> str:
-    not_allowed_symbols = ["#", "<", ">", "{", "}", '"', "'", "$", "(", ")", "@"]
+    not_allowed_symbols = ["#", "<", ">", "{", "}", '"', "'", "$", "(", ")", "@", "`", "\\"]
     cleaned_text = "".join(char for char in text if char not in not_allowed_symbols)
 
-    return cleaned_text
+    return cleaned_text.strip()
 
 
+@cached
+def get_user_tag(user: UserModel):
+    return f"<a href='tg://user?id={user.id}'>{user.name}</a>"
+
+
+@cached
+def calc_percentage(part: int, total: int = 100) -> float:
+    if total == 0:
+        raise ValueError("Общий объем не может быть равен нулю")
+    return (part / total) * 100
+
+
+@cached
+def create_progress_bar(percentage: float) -> str:
+    if not (0 <= percentage <= 100):  # pylint: disable=superfluous-parens
+        raise ValueError("Процент должен быть в диапазоне от 0 до 100.")
+
+    length: int = 10
+    filled_length = int(length * percentage // 100)
+    empty_length = length - filled_length
+
+    filled_block = "■"
+    empty_block = "□"
+
+    progress_bar = filled_block * filled_length + empty_block * empty_length
+    return progress_bar
+
+
+@cached
+def quick_markup(
+    values: dict[str, dict[str, Any]],
+    *sizes: int,
+    repeat: bool = False,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    buttons = [InlineKeyboardButton(text=text, **kwargs) for text, kwargs in values.items()]
+    builder.add(*buttons)
+    builder.adjust(*sizes, repeat=repeat)
+    return builder.as_markup()
+
+
+async def antiflood(func: Awaitable[T]) -> T:
+    number_retries = 5
+    for _ in range(number_retries):
+        try:
+            return await func
+        except TelegramRetryAfter as e:
+            await asyncio.sleep(e.retry_after)
+    return await func
+
+
+if sys.version_info >= (3, 12):
+    batched = cached(itertools.batched)  # pylint: disable=invalid-name,no-member
+else:
+
+    @cached
+    def batched(iterable: Iterable[T], n: int) -> Generator[tuple[T, ...], None, None]:
+        # https://docs.python.org/3.12/library/itertools.html#itertools.batched
+        if n < 1:
+            raise ValueError("n must be at least one")
+        iterator = iter(iterable)
+        while batch := tuple(itertools.islice(iterator, n)):
+            yield batch
+
+
+@cached
+def pretty_datetime(d: datetime) -> str:
+    return d.strftime("%H:%M %d.%m.%Y")
+
+
+@cached
 def get_time_difference_string(d: timedelta) -> str:
-    days = d.days
-    years, days_in_year = divmod(days, 365)
-    months, days_in_month = divmod(days_in_year, 30)
+    years, days_in_year = divmod(d.days, 365)
+    months, days = divmod(days_in_year, 30)
     hours, remainder = divmod(d.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
 
@@ -23,15 +131,39 @@ def get_time_difference_string(d: timedelta) -> str:
         data += f"{years} г. "
     if months > 0:
         data += f"{months} мес. "
-    if days_in_month > 0:
-        data += f"{days_in_month} д. "
+    if days > 0:
+        data += f"{days} д. "
     if hours > 0:
         data += f"{hours} ч. "
     if minutes > 0:
         data += f"{minutes} м. "
+
     data += f"{seconds} с. "
     return data
 
 
-def get_user_tag(user: UserModel):
-    return f"<a href='tg://user?id={user.id}'>{user.name}</a>"
+class MessageEditor:
+    def __init__(
+        self,
+        user_message: Message,
+        *,
+        title: str,
+    ):
+        self.user_message = user_message
+        self.message: Message
+
+        self.title = title
+        self._mess = f"<b>{self.title}</b>"
+        self.exit_funcs: set[Callable[[], None | Any]] = set()
+
+    async def __aenter__(self) -> Self:
+        self.message = await antiflood(self.user_message.reply(self._mess))
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        for func in self.exit_funcs:
+            func()
+
+    async def write(self, new_text: str):
+        self._mess = text = f"{self._mess}\n<b>*</b>  {new_text}"
+        self.message = await antiflood(self.message.edit_text(text))

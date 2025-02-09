@@ -1,8 +1,8 @@
 from typing import Type
-from telebot.handler_backends import BaseMiddleware
+
+from aiogram import BaseMiddleware
 
 from .register import RegisterMiddleware
-
 
 middlewares: list[Type[BaseMiddleware]] = [
     RegisterMiddleware,
